@@ -1,0 +1,16 @@
+handoff:
+  agent: <agent-name>
+  phase: <M1|M2|M3|M4|M5>
+  status: <done|blocked|needs-review>
+  outputs:
+    code_changes: ["path1", "path2"]
+    schema_changes: ["table/column/index"]
+    api_changes: ["METHOD /path"]
+    tests: ["pytest ...", "playwright ..."]
+  contracts:
+    producer: <what this agent guarantees>
+    consumer: <what next agent can assume>
+  risks:
+    - <risk item>
+  next_actions:
+    - <next task>
