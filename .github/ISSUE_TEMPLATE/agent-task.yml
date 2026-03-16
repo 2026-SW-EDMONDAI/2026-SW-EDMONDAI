@@ -1,0 +1,55 @@
+name: Agent Task
+about: 에이전트 단위 작업 이슈 템플릿
+title: "[Agent] <task title>"
+labels: ["agent-task"]
+body:
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Owner Agent
+      options:
+        - Platform Bootstrap Agent
+        - Frontend Dashboard Agent
+        - Backend API Agent
+        - Data Modeling Agent
+        - Async Pipeline Agent
+        - Recommendation Logic Agent
+        - QA & Reliability Agent
+        - Metrics & Observability Agent
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Milestone Phase
+      options: [M1, M2, M3, M4, M5]
+    validations:
+      required: true
+  - type: textarea
+    id: contracts
+    attributes:
+      label: Input Contracts
+      description: API/DB/Schema 가정과 의존성
+    validations:
+      required: true
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: Expected Deliverables
+      description: 코드/스키마/API/테스트 산출물
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification Commands
+      description: pytest/playwright/build 등 검증 명령
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done Criteria
+      description: 마일스톤 게이트 기준
+    validations:
+      required: true
