@@ -1,0 +1,11 @@
+{
+  "name": "@segmentflow/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Next.js not initialized yet'",
+    "build": "echo 'Next.js not initialized yet'",
+    "lint": "echo 'Next.js not initialized yet'",
+    "typecheck": "echo 'Next.js not initialized yet'"
+  }
+}
