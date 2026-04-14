@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from core.config import settings
 from core.exceptions import AppException, app_exception_handler, unhandled_exception_handler
 from core.middleware import RequestIdMiddleware
+from routes.auth import router as auth_router
 from routes.health import router as health_router
 
 app = FastAPI(
@@ -22,3 +23,4 @@ app.add_exception_handler(Exception, unhandled_exception_handler)
 
 # Routers
 app.include_router(health_router)
+app.include_router(auth_router)
