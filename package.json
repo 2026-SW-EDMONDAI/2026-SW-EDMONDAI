@@ -1,0 +1,16 @@
+{
+  "name": "segmentflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SegmentFlow — 교육영상 세그먼트 분석 및 광고 위치 추천 운영 도구",
+  "scripts": {
+    "dev": "pnpm --filter @segmentflow/web dev",
+    "build": "pnpm --filter @segmentflow/web build",
+    "lint": "pnpm --filter @segmentflow/web lint",
+    "typecheck": "pnpm --filter @segmentflow/web typecheck"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  }
+}
