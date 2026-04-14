@@ -2,6 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
+import sqlalchemy as sa
 from sqlalchemy import (
     Boolean,
     DateTime,
@@ -63,7 +64,7 @@ class OrganizationMember(UUIDPrimaryKeyMixin, Base):
     )
     org_role: Mapped[str] = mapped_column(String(40), nullable=False, default="analyst")
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default="now()", nullable=False
+        DateTime(timezone=True), server_default=sa.func.now(), nullable=False
     )
 
     organization = relationship("Organization", back_populates="members")

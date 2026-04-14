@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **SegmentFlow** — 교육영상을 세그먼트 단위로 분석해 학습 흐름을 파악하고, 학습 품질을 보존하는 광고 위치를 Agent가 추천하는 운영 도구.
 
-현재 저장소는 **문서 중심의 기획/설계 단계**로, 구현 코드(`apps/web`, `apps/api`, `apps/worker`)는 아직 생성 전입니다.
+현재 저장소는 **기획/설계와 초기 구현 스캐폴딩 단계**이며, `apps/web`, `apps/api`, `apps/worker`에 대한 기본 구조와 일부 구현 코드가 포함되어 있습니다.
 
 ## 예정 모노레포 구조
 

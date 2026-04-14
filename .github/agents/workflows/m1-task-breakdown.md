@@ -1,4 +1,4 @@
-# M1 Foundation — 작업 분해서
+# M1 Foundation — 작업 분해
 
 ---
 
@@ -38,9 +38,9 @@
 | 항목 | 내용 |
 |------|------|
 | **Inputs** | `docs/api.md` 공통 엔드포인트 정의 |
-| **Contracts** | `GET /health` → `{"status":"ok"}`, `GET /version` → `{"version":"0.1.0"}`, `GET /docs` → Swagger UI |
+| **Contracts** | `GET /health` → `{"data":{"status":"ok"},"meta":{"requestId":"<id>","timestamp":"<iso8601>"}}`, `GET /version` → `{"data":{"version":"0.1.0"},"meta":{"requestId":"<id>","timestamp":"<iso8601>"}}`, `GET /docs` → Swagger UI |
 | **Expected Outputs** | `apps/api/main.py`, `apps/api/routes/health.py`, `apps/api/core/config.py` |
-| **Tests** | `pytest tests/test_health.py` — 200 응답, JSON 스키마 검증 |
+| **Tests** | `pytest tests/test_health.py` — 200 응답, `data`/`meta` 포함 공통 response envelope 및 payload JSON 스키마 검증 |
 
 ### Task 4: Core Schema + Alembic Migration
 

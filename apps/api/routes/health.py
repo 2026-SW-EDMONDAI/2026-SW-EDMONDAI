@@ -6,7 +6,7 @@ from core.config import settings
 router = APIRouter(tags=["System"])
 
 
-@router.get("/health")
+@router.get("/health", response_model=SuccessResponse)
 async def health(request: Request) -> SuccessResponse:
     return SuccessResponse(
         data={"status": "ok"},
@@ -14,7 +14,7 @@ async def health(request: Request) -> SuccessResponse:
     )
 
 
-@router.get("/version")
+@router.get("/version", response_model=SuccessResponse)
 async def version(request: Request) -> SuccessResponse:
     return SuccessResponse(
         data={"version": settings.APP_VERSION},
