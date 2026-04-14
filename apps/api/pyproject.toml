@@ -28,6 +28,9 @@ dev = [
 requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+include = ["core*", "routes*", "schemas*", "models*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
