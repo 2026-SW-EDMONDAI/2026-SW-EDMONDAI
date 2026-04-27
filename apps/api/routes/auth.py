@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request
 
-from core.auth import create_access_token, hash_password, verify_password
+from core.auth import create_access_token, verify_password
 from core.database import get_db
 from core.exceptions import AppException
 from models.core import OrganizationMember, User

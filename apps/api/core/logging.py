@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 import structlog
@@ -6,6 +7,13 @@ import structlog
 
 def setup_logging(log_level: str = "INFO") -> None:
     """Configure structlog with JSON output for production, console for dev."""
+
+    env = os.environ.get("ENV", "development")
+    renderer = (
+        structlog.processors.JSONRenderer()
+        if env == "production"
+        else structlog.dev.ConsoleRenderer()
+    )
 
     structlog.configure(
         processors=[
@@ -18,7 +26,7 @@ def setup_logging(log_level: str = "INFO") -> None:
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             structlog.processors.UnicodeDecoder(),
-            structlog.dev.ConsoleRenderer(),
+            renderer,
         ],
         wrapper_class=structlog.stdlib.BoundLogger,
         context_class=dict,

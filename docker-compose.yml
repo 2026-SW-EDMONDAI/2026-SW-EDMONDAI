@@ -83,7 +83,7 @@ services:
     build:
       context: .
       dockerfile: apps/worker/Dockerfile
-    command: celery -A worker beat --loglevel=info
+    command: celery -A celery_app beat --loglevel=info
     environment:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
@@ -98,7 +98,8 @@ services:
   # ── Frontend ──
   web:
     build:
-      context: ./apps/web
+      context: .
+      dockerfile: apps/web/Dockerfile
     ports:
       - "3000:3000"
     environment:
@@ -111,7 +112,7 @@ services:
 
   # ── Observability ──
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.4.0
     ports:
       - "9090:9090"
     volumes:
@@ -121,11 +122,11 @@ services:
       - api
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.6.0
     ports:
       - "3001:3000"
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-admin}
     volumes:
       - ./infrastructure/docker/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./infrastructure/docker/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards

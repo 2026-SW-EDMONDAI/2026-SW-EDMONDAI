@@ -8,8 +8,8 @@ from core.auth import decode_access_token
 from core.exceptions import AppException
 
 
-def get_current_user(request: Request, authorization: str = Header(...)) -> dict:
-    if not authorization.startswith("Bearer "):
+def get_current_user(request: Request, authorization: str | None = Header(None)) -> dict:
+    if not authorization or not authorization.startswith("Bearer "):
         raise AppException(
             code="INVALID_TOKEN", message="Bearer token required.", status_code=401
         )

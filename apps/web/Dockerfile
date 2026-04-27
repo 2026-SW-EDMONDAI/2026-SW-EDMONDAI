@@ -4,10 +4,11 @@ WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-COPY package.json pnpm-lock.yaml* ./
+COPY apps/web/package.json ./package.json
+COPY pnpm-lock.yaml ./pnpm-lock.yaml
 RUN pnpm install --frozen-lockfile || pnpm install
 
-COPY . .
+COPY apps/web/. .
 
 EXPOSE 3000
 
