@@ -181,7 +181,7 @@ class TestVideoAnalyze:
         db.add(video)
         db.commit()
 
-        with patch("services.video_service.publish_analyze_video", side_effect=ImportError):
+        with patch("services.video_service._publish_analyze_video", return_value=None):
             response = client.post(
                 f"/api/v1/orgs/{org.id}/videos/{video.id}/analyze",
                 headers=auth_headers(operator_token),

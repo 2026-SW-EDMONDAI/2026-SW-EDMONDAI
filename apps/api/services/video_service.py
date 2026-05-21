@@ -10,6 +10,11 @@ from core.exceptions import AppException
 from models.core import Video, VideoStatus
 from models.video import VideoAsset, VideoSignalConfig
 
+try:
+    from worker_client import publish_analyze_video as _publish_analyze_video
+except Exception:
+    _publish_analyze_video = None  # type: ignore[assignment]
+
 
 class VideoService:
     def __init__(self, db: Session):
@@ -30,14 +35,7 @@ class VideoService:
             q = q.where(Video.status == status)
         if search:
             q = q.where(Video.title.ilike(f"%{search}%"))
-        total = self.db.scalar(select(Video).where(Video.organization_id == org_id).with_only_columns(Video.id).correlate(None).subquery().count()) or 0
-
         from sqlalchemy import func
-        count_q = select(func.count()).select_from(
-            select(Video).where(Video.organization_id == org_id)
-            .filter(Video.status == status if status else True)
-        ).scalar_subquery()
-
         count_stmt = select(func.count(Video.id)).where(Video.organization_id == org_id)
         if status:
             count_stmt = count_stmt.where(Video.status == status)
@@ -147,10 +145,9 @@ class VideoService:
         video.status = VideoStatus.processing
         self.db.commit()
 
-        # Publish Celery task (import here to avoid circular at module load)
         try:
-            from worker_client import publish_analyze_video
-            publish_analyze_video(str(video_id))
+            if _publish_analyze_video:
+                _publish_analyze_video(str(video_id))
         except Exception:
             pass
 
