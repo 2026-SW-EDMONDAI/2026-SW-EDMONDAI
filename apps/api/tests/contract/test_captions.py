@@ -1,4 +1,5 @@
 """Contract tests for caption API (M2-2)."""
+import os
 import uuid
 
 import pytest
@@ -14,13 +15,20 @@ from models.core import Organization, User, Video, VideoStatus
 from models.video import CaptionCue, CaptionTrack, VideoSignalConfig  # noqa: F401
 from models.segment import SegmentSet, Segment  # noqa: F401
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+SQLALCHEMY_DATABASE_URL = (
+    f"postgresql://{os.getenv('POSTGRES_USER', 'segmentflow')}:"
+    f"{os.getenv('POSTGRES_PASSWORD', 'segmentflow_dev')}@"
+    f"{os.getenv('POSTGRES_HOST', 'localhost')}:"
+    f"{os.getenv('POSTGRES_PORT', '5432')}/"
+    f"{os.getenv('POSTGRES_DB', 'segmentflow_test')}"
+)
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 @pytest.fixture(autouse=True)
 def setup_db():
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)

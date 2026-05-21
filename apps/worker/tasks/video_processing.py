@@ -142,30 +142,26 @@ def _generate_segments_from_cues(cues: list[dict]) -> list[dict]:
     return segments
 
 
-# ── Celery task ────────────────────────────────────────────────────────────
+# ── Core logic (testable without Celery) ─────────────────────────────────
 
-@shared_task(
-    name="worker.tasks.video_processing.analyze_video",
-    queue="video-processing",
-    bind=True,
-    max_retries=3,
-    default_retry_delay=30,
-)
-def analyze_video(self, video_id: str) -> dict:
+def _run_analyze(video_id: str, db=None) -> dict:
     """
-    Celery task: parse subtitle + auto-generate segments for a video.
+    Core analysis logic: parse subtitle + auto-generate segments.
 
-    Idempotent: if a segment_set with version=1 and source=auto already
-    exists for this video, the task skips re-generation.
+    Accepts an optional db session (for testing). When db is None,
+    a new session is created via _get_db_session().
+
+    Idempotent: if a segment_set with version=1 already exists for
+    this video and video.status == analyzed, skips re-generation.
     """
-    db = None
+    owns_db = db is None
+    if owns_db:
+        db = _get_db_session()
     try:
-        # Import models here (worker process may not have full app context)
         from models.core import Video, VideoStatus
         from models.video import CaptionCue, CaptionTrack, VideoAsset
         from models.segment import Segment, SegmentSet, SegmentSetStatus
 
-        db = _get_db_session()
         vid_uuid = uuid.UUID(video_id)
 
         video = db.scalar(select(Video).where(Video.id == vid_uuid))
@@ -173,7 +169,6 @@ def analyze_video(self, video_id: str) -> dict:
             logger.error("Video %s not found", video_id)
             return {"status": "failed", "reason": "video_not_found"}
 
-        # Idempotency check
         existing_set = db.scalar(
             select(SegmentSet).where(
                 SegmentSet.video_id == vid_uuid,
@@ -184,7 +179,6 @@ def analyze_video(self, video_id: str) -> dict:
             logger.info("Video %s already analyzed – skipping", video_id)
             return {"status": "skipped"}
 
-        # Find subtitle asset
         subtitle_asset = db.scalar(
             select(VideoAsset).where(
                 VideoAsset.video_id == vid_uuid,
@@ -197,10 +191,8 @@ def analyze_video(self, video_id: str) -> dict:
             db.commit()
             return {"status": "failed", "reason": "no_subtitle"}
 
-        # Parse subtitle
         cues = _parse_subtitle(subtitle_asset.storage_path)
 
-        # Persist caption track + cues
         track = CaptionTrack(
             id=uuid.uuid4(),
             video_id=vid_uuid,
@@ -222,7 +214,6 @@ def analyze_video(self, video_id: str) -> dict:
             )
             db.add(cue)
 
-        # Auto-generate segment set
         seg_data_list = _generate_segments_from_cues(cues)
         segment_set = SegmentSet(
             id=uuid.uuid4(),
@@ -247,31 +238,36 @@ def analyze_video(self, video_id: str) -> dict:
             )
             db.add(seg)
 
-        # Update video status
         video.status = VideoStatus.analyzed
         video.analyzed_at = datetime.now(timezone.utc)
         db.commit()
 
         logger.info(
             "Video %s analyzed: %d cues → %d segments",
-            video_id,
-            len(cues),
-            len(seg_data_list),
+            video_id, len(cues), len(seg_data_list),
         )
         return {"status": "success", "segment_count": len(seg_data_list)}
 
+    except Exception:
+        raise
+    finally:
+        if owns_db:
+            db.close()
+
+
+# ── Celery task ────────────────────────────────────────────────────────────
+
+@shared_task(
+    name="worker.tasks.video_processing.analyze_video",
+    queue="video-processing",
+    bind=True,
+    max_retries=3,
+    default_retry_delay=30,
+)
+def analyze_video(self, video_id: str) -> dict:
+    """Celery task wrapper around _run_analyze."""
+    try:
+        return _run_analyze(video_id)
     except Exception as exc:
         logger.exception("Error analyzing video %s: %s", video_id, exc)
-        if db:
-            try:
-                from models.core import Video, VideoStatus
-                video = db.scalar(select(Video).where(Video.id == uuid.UUID(video_id)))
-                if video:
-                    video.status = VideoStatus.failed
-                    db.commit()
-            except Exception:
-                pass
         raise self.retry(exc=exc)
-    finally:
-        if db:
-            db.close()

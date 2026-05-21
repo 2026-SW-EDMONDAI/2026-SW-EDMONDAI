@@ -1,15 +1,12 @@
-"""Contract tests for video management API (M2-2).
-
-These tests use an in-memory SQLite database so they do not require
-a running PostgreSQL instance.
-"""
+"""Contract tests for video management API (M2-2)."""
 import io
+import os
 import uuid
 from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from core.auth import create_access_token
@@ -20,17 +17,20 @@ from models.core import Organization, User, VideoStatus  # noqa: F401
 from models.video import VideoAsset, VideoSignalConfig  # noqa: F401
 from models.segment import SegmentSet, Segment  # noqa: F401
 
-# SQLite in-memory DB (no PostgreSQL-specific types used in tests)
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
+SQLALCHEMY_DATABASE_URL = (
+    f"postgresql://{os.getenv('POSTGRES_USER', 'segmentflow')}:"
+    f"{os.getenv('POSTGRES_PASSWORD', 'segmentflow_dev')}@"
+    f"{os.getenv('POSTGRES_HOST', 'localhost')}:"
+    f"{os.getenv('POSTGRES_PORT', '5432')}/"
+    f"{os.getenv('POSTGRES_DB', 'segmentflow_test')}"
 )
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 @pytest.fixture(autouse=True)
 def setup_db():
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)

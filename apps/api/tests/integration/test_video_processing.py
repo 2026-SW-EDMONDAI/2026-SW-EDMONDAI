@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, patch
 from worker.tasks.video_processing import (
     _generate_segments_from_cues,
     _ms,
+    _run_analyze,
     parse_srt,
     parse_vtt,
 )
@@ -183,9 +184,7 @@ Second block
             db_mock.close = MagicMock()
 
             with patch("worker.tasks.video_processing._get_db_session", return_value=db_mock):
-                from worker.tasks.video_processing import analyze_video
-                # Call the underlying function directly (bypass Celery)
-                result = analyze_video.__wrapped__(None, video_id)
+                result = _run_analyze(video_id)
 
             assert result["status"] == "success"
             assert result["segment_count"] >= 1
@@ -217,8 +216,7 @@ Second block
         db_mock.close = MagicMock()
 
         with patch("worker.tasks.video_processing._get_db_session", return_value=db_mock):
-            from worker.tasks.video_processing import analyze_video
-            result = analyze_video.__wrapped__(None, video_id)
+            result = _run_analyze(video_id)
 
         assert result["status"] == "failed"
         assert result["reason"] == "no_subtitle"
