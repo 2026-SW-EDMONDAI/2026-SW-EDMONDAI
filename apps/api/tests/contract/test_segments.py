@@ -93,7 +93,7 @@ def base_data(db):
     ]
     db.add_all(segs)
     db.commit()
-    token = create_access_token({"sub": str(user.id), "orgId": str(org.id), "orgRole": "operator"})
+    token = create_access_token(str(user.id), str(org.id), "operator")
     return org, video, ss, segs, token
 
 

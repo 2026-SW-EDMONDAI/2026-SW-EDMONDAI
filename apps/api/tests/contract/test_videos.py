@@ -78,9 +78,7 @@ def org_and_user(db):
 @pytest.fixture
 def operator_token(org_and_user):
     org, user = org_and_user
-    return create_access_token(
-        {"sub": str(user.id), "orgId": str(org.id), "orgRole": "operator"}
-    )
+    return create_access_token(str(user.id), str(org.id), "operator")
 
 
 def auth_headers(token: str) -> dict:
