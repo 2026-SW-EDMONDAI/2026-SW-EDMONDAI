@@ -203,6 +203,59 @@ export const segmentApi = {
   },
 };
 
+// ── Funnel / metrics ──────────────────────────────────────────────────────
+
+export interface SegmentMetrics {
+  viewersStarted: number;
+  viewersCompleted: number;
+  completionRate: number;
+  dropoutRate: number;
+  rewatchRate: number;
+  nextTransitionRate: number;
+  avgPauseCount: number;
+  avgSeekBackCount: number;
+  avgSpeedChangeCount: number;
+  explicitResponseRate: number;
+  confidencePositiveRate: number | null;
+  confidenceUnsureRate: number | null;
+  confidenceReviewAgainRate: number | null;
+  learningStabilityScore: number | null;
+}
+
+export interface SegmentFunnelEntry {
+  segment: { id: string; seqNo: number; title: string; startMs: number; endMs: number };
+  metrics: SegmentMetrics;
+  riskFlags: string[];
+}
+
+export interface FunnelResponse {
+  videoSummary: {
+    videoId: string;
+    segmentSetId: string;
+    metricDate: string | null;
+    completionRate: number;
+    nextTransitionRate: number | null;
+    explicitResponseRate: number | null;
+  };
+  segments: SegmentFunnelEntry[];
+}
+
+export const funnelApi = {
+  getVideoFunnel(
+    orgId: string,
+    videoId: string,
+    params: { segmentSetId: string; metricDate?: string; cohortType?: string },
+  ) {
+    const q = new URLSearchParams();
+    q.set("segmentSetId", params.segmentSetId);
+    if (params.metricDate) q.set("metricDate", params.metricDate);
+    if (params.cohortType) q.set("cohortType", params.cohortType);
+    return request<{ data: FunnelResponse }>(
+      `/orgs/${orgId}/videos/${videoId}/funnel?${q}`,
+    );
+  },
+};
+
 export const captionApi = {
   getCues(orgId: string, videoId: string, params?: { startMs?: number; endMs?: number }) {
     const q = new URLSearchParams();

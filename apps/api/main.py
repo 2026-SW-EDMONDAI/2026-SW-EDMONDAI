@@ -8,6 +8,7 @@ from core.middleware import RequestIdMiddleware
 from routes.auth import router as auth_router
 from routes.captions import router as captions_router
 from routes.events import router as events_router
+from routes.funnel import router as funnel_router
 from routes.health import router as health_router
 from routes.segments import router as segments_router
 from routes.videos import router as videos_router
@@ -40,3 +41,4 @@ app.include_router(videos_router)
 app.include_router(captions_router)
 app.include_router(segments_router)
 app.include_router(events_router)
+app.include_router(funnel_router)
