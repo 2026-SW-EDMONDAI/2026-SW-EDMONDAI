@@ -8,7 +8,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID, ENUM as PG_ENUM
 
 revision: str = "0003"
 down_revision: Union[str, None] = "0002"
@@ -38,11 +38,20 @@ EVENT_TYPE_VALUES = (
 
 
 def upgrade() -> None:
-    signal_mode = sa.Enum(*SIGNAL_MODE_VALUES, name="signal_mode")
-    signal_mode.create(op.get_bind(), checkfirst=True)
-
-    event_type = sa.Enum(*EVENT_TYPE_VALUES, name="event_type")
-    event_type.create(op.get_bind(), checkfirst=True)
+    signal_values = ",".join(f"'{v}'" for v in SIGNAL_MODE_VALUES)
+    op.execute(
+        f"DO $$ BEGIN "
+        f"IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname='signal_mode') THEN "
+        f"CREATE TYPE signal_mode AS ENUM ({signal_values}); "
+        f"END IF; END $$;"
+    )
+    event_values = ",".join(f"'{v}'" for v in EVENT_TYPE_VALUES)
+    op.execute(
+        f"DO $$ BEGIN "
+        f"IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname='event_type') THEN "
+        f"CREATE TYPE event_type AS ENUM ({event_values}); "
+        f"END IF; END $$;"
+    )
 
     # learner_sessions
     op.create_table(
@@ -105,12 +114,12 @@ def upgrade() -> None:
         sa.Column("client_event_id", sa.String(80), nullable=False),
         sa.Column(
             "signal_mode",
-            sa.Enum(*SIGNAL_MODE_VALUES, name="signal_mode", create_type=False),
+            PG_ENUM(*SIGNAL_MODE_VALUES, name="signal_mode", create_type=False),
             nullable=False,
         ),
         sa.Column(
             "event_type",
-            sa.Enum(*EVENT_TYPE_VALUES, name="event_type", create_type=False),
+            PG_ENUM(*EVENT_TYPE_VALUES, name="event_type", create_type=False),
             nullable=False,
         ),
         sa.Column("event_value", sa.String(100), nullable=True),
@@ -279,5 +288,5 @@ def downgrade() -> None:
     op.drop_index("ix_learner_sessions_video_started", table_name="learner_sessions")
     op.drop_table("learner_sessions")
 
-    sa.Enum(name="event_type").drop(op.get_bind(), checkfirst=True)
-    sa.Enum(name="signal_mode").drop(op.get_bind(), checkfirst=True)
+    op.execute("DROP TYPE IF EXISTS event_type")
+    op.execute("DROP TYPE IF EXISTS signal_mode")

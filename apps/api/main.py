@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import settings
 from core.exceptions import AppException, app_exception_handler, unhandled_exception_handler
@@ -25,6 +26,13 @@ app = FastAPI(
 )
 
 # Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.add_middleware(RequestIdMiddleware)
 
 # Prometheus metrics — exposes /metrics endpoint

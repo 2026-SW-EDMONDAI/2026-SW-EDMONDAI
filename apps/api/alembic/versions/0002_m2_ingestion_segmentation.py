@@ -8,7 +8,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID, ENUM as PG_ENUM
 
 revision: str = "0002"
 down_revision: Union[str, None] = "0001"
@@ -18,11 +18,17 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # Enum: segment_set_status
-    segment_set_status = sa.Enum(
+    op.execute(
+        "DO $$ BEGIN "
+        "IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname='segment_set_status') THEN "
+        "CREATE TYPE segment_set_status AS ENUM ('draft','finalized','archived'); "
+        "END IF; END $$;"
+    )
+    segment_set_status = PG_ENUM(
         "draft", "finalized", "archived",
         name="segment_set_status",
+        create_type=False,
     )
-    segment_set_status.create(op.get_bind(), checkfirst=True)
 
     # video_assets
     op.create_table(

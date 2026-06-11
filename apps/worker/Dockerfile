@@ -3,7 +3,7 @@ FROM python:3.13-slim
 WORKDIR /app
 
 COPY apps/api /deps
-RUN pip install --no-cache-dir /deps
+RUN pip install --no-cache-dir "/deps[dev]"
 
 COPY apps/worker /app
 
