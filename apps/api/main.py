@@ -2,8 +2,17 @@ from fastapi import FastAPI
 
 from core.config import settings
 from core.exceptions import AppException, app_exception_handler, unhandled_exception_handler
+from core.logging import setup_logging
+from core.metrics import instrumentator
 from core.middleware import RequestIdMiddleware
+from routes.auth import router as auth_router
+from routes.captions import router as captions_router
 from routes.health import router as health_router
+from routes.segments import router as segments_router
+from routes.videos import router as videos_router
+
+# Initialize structured logging
+setup_logging()
 
 app = FastAPI(
     title=settings.APP_TITLE,
@@ -16,9 +25,16 @@ app = FastAPI(
 # Middleware
 app.add_middleware(RequestIdMiddleware)
 
+# Prometheus metrics — exposes /metrics endpoint
+instrumentator.instrument(app).expose(app, include_in_schema=False)
+
 # Exception handlers
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
 # Routers
 app.include_router(health_router)
+app.include_router(auth_router)
+app.include_router(videos_router)
+app.include_router(captions_router)
+app.include_router(segments_router)

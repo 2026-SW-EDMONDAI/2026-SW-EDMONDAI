@@ -99,3 +99,7 @@ class Video(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     organization = relationship("Organization", back_populates="videos")
+    assets = relationship("VideoAsset", back_populates="video", cascade="all, delete-orphan")
+    caption_tracks = relationship("CaptionTrack", back_populates="video", cascade="all, delete-orphan")
+    signal_config = relationship("VideoSignalConfig", back_populates="video", uselist=False, cascade="all, delete-orphan")
+    segment_sets = relationship("SegmentSet", back_populates="video", cascade="all, delete-orphan")
